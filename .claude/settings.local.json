@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git config *)",
+      "Bash(git -c 'user.name=CloakManager Dev' -c user.email=dev@cloakmanager.local commit -q -m ' *)",
+      "Bash(git commit -q -m 'feat\\(cloak_core\\): add streaming SHA-256 file verifier *)"
+    ]
+  }
+}
