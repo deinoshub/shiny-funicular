@@ -1,0 +1,29 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/*.g.dart
+pubspec.lock
+
+# Drift generated
+**/*.drift.dart
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local command exports
+*-command-message*.txt
+
+# CloakManager runtime data (never commit user data / binaries)
+binary/
+profiles/
+downloads/
+*.sqlite
