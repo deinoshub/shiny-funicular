@@ -8,6 +8,7 @@ export 'src/binary/chunked_downloader.dart';
 export 'src/binary/resume_store.dart';
 export 'src/binary/sha256_verifier.dart';
 export 'src/binary/sha256sums.dart';
+export 'src/launcher/launch_args_composer.dart';
 export 'src/launcher/port_allocator.dart';
 export 'src/models/installed_version.dart';
 export 'src/models/profile.dart';
