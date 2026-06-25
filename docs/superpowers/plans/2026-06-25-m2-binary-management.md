@@ -1416,7 +1416,18 @@ class BinaryManager {
   final ChunkedDownloader _downloader;
 
   static const releasesApi =
-      'https://api.github.com/repos/CloakHQ/cloakbrowser/releases?per_page=10';
+      'https://api.github.com/repos/CloakHQ/cloakbrowser/releases?per_page=30';
+
+  /// The latest non-pro release that publishes an asset for [platform].
+  /// Not every release ships every platform, so callers must filter rather
+  /// than assume the newest release is installable.
+  Future<ReleaseInfo?> latestCompatibleRelease() async {
+    final releases = await listReleases();
+    for (final r in releases) {
+      if (!r.isPro && r.assetFor(platform) != null) return r;
+    }
+    return null;
+  }
 
   Future<BinaryManifest> loadManifest() async {
     final manifestFile = paths.manifestFile;
