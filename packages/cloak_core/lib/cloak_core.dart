@@ -2,6 +2,7 @@
 library;
 
 export 'src/models/enums.dart';
+export 'src/binary/archive_extractor.dart';
 export 'src/binary/chunked_downloader.dart';
 export 'src/binary/resume_store.dart';
 export 'src/binary/sha256_verifier.dart';
