@@ -6,6 +6,7 @@ export 'src/binary/sha256_verifier.dart';
 export 'src/binary/sha256sums.dart';
 export 'src/launcher/port_allocator.dart';
 export 'src/models/profile.dart';
+export 'src/models/release_info.dart';
 export 'src/models/proxy_config.dart';
 export 'src/models/stealth_config.dart';
 export 'src/platform/platform_info.dart';
