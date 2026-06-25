@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:cloak_core/cloak_core.dart';
+import 'package:http/testing.dart';
+import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
 void main() {
@@ -63,5 +66,53 @@ void main() {
       installedAt: DateTime.utc(2026),
     ));
     expect(win, endsWith('chrome.exe'));
+  });
+
+  test('latestCompatibleRelease skips pro + platform-less releases', () async {
+    // Newest-first: pro (has darwin), newest free (NO darwin), older free (has darwin).
+    final releasesJson = [
+      {
+        'tag_name': 'chromium-v148-pro',
+        'name': 'Pro',
+        'assets': [
+          {'name': 'cloakbrowser-darwin-arm64.tar.gz', 'browser_download_url': 'x', 'size': 1},
+          {'name': 'SHA256SUMS', 'browser_download_url': 'x', 'size': 1},
+        ],
+      },
+      {
+        'tag_name': 'chromium-v146.0.0.5',
+        'name': 'Free',
+        'assets': [
+          {'name': 'cloakbrowser-linux-x64.tar.gz', 'browser_download_url': 'x', 'size': 1},
+          {'name': 'cloakbrowser-windows-x64.zip', 'browser_download_url': 'x', 'size': 1},
+        ],
+      },
+      {
+        'tag_name': 'chromium-v145.0.0.2',
+        'name': 'Free',
+        'assets': [
+          {'name': 'cloakbrowser-darwin-arm64.tar.gz', 'browser_download_url': 'x', 'size': 1},
+          {'name': 'SHA256SUMS', 'browser_download_url': 'x', 'size': 1},
+        ],
+      },
+    ];
+    final client = MockClient((req) async => http.Response(
+        jsonEncode(releasesJson), 200,
+        headers: {'content-type': 'application/json'}));
+
+    final mac = BinaryManager(
+      paths: paths,
+      platform: const PlatformInfo(os: 'macos', arch: 'arm64'),
+      client: client,
+    );
+    final chosen = await mac.latestCompatibleRelease();
+    expect(chosen?.tagName, 'chromium-v145.0.0.2'); // newest free with darwin
+
+    final win = BinaryManager(
+      paths: paths,
+      platform: const PlatformInfo(os: 'windows', arch: 'x64'),
+      client: client,
+    );
+    expect((await win.latestCompatibleRelease())?.tagName, 'chromium-v146.0.0.5');
   });
 }

@@ -46,10 +46,14 @@ class BinaryStateController extends AsyncNotifier<BinaryInstallState> {
 
   Future<void> downloadLatest() async {
     final bm = ref.read(binaryManagerProvider);
+    final platform = ref.read(platformInfoProvider);
     try {
-      final releases = await bm.listReleases();
-      final stable = releases.firstWhere((r) => !r.isPro && !r.prerelease,
-          orElse: () => releases.first);
+      final stable = await bm.latestCompatibleRelease();
+      if (stable == null) {
+        state = AsyncData(Failed(
+            'No CloakBrowser build available for ${platform.os}/${platform.arch}'));
+        return;
+      }
       state = const AsyncData(Downloading(0, 0, 0));
       final installed = await bm.install(stable, onProgress: (f, r, t) {
         state = AsyncData(Downloading(f, r, t));
