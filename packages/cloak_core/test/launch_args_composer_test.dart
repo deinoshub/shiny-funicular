@@ -47,4 +47,25 @@ void main() {
     );
     expect(args.last, 'about:blank');
   });
+
+  test('empty startUrlOverride suppresses the URL (proxy-auth path)', () {
+    final args = LaunchArgsComposer.compose(
+      profile: profile(startUrl: 'https://example.com'),
+      userDataDir: '/d',
+      debugPort: 9222,
+      startUrlOverride: '',
+    );
+    expect(args, isNot(contains('https://example.com')));
+    expect(args, contains('--disable-features=TranslateUI,InfiniteSessionRestore'));
+  });
+
+  test('null startUrlOverride falls back to profile.startUrl', () {
+    final args = LaunchArgsComposer.compose(
+      profile: profile(startUrl: 'https://fallback.test/'),
+      userDataDir: '/d',
+      debugPort: 9222,
+      startUrlOverride: null,
+    );
+    expect(args.last, 'https://fallback.test/');
+  });
 }

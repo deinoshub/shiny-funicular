@@ -6,6 +6,7 @@ export 'src/binary/archive_extractor.dart';
 export 'src/binary/binary_manager.dart';
 export 'src/cdp/cdp_client.dart';
 export 'src/cdp/cdp_discovery.dart';
+export 'src/cdp/proxy_authenticator.dart';
 export 'src/binary/chunked_downloader.dart';
 export 'src/binary/resume_store.dart';
 export 'src/binary/sha256_verifier.dart';

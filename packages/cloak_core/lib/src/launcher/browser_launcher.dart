@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import '../cdp/cdp_client.dart';
 import '../cdp/cdp_discovery.dart';
 import '../cdp/proxy_authenticator.dart';
 import '../models/profile.dart';
@@ -50,10 +51,19 @@ class BrowserLauncher {
   }) async {
     final (userDataDir, ephemeral) = await _resolveUserDataDir(profile);
     final port = await _ports.allocate();
+
+    // When an authenticated proxy is in play, the browser must NOT receive
+    // the start_url as a CLI arg: it would navigate immediately and fire its
+    // first request before our ProxyAuthenticator can intercept the 407.
+    // We instead omit it and navigate via CDP after auth is wired up.
+    final proxy = profile.stealth.proxy;
+    final needsProxyAuth =
+        proxy.enabled && (proxy.username?.isNotEmpty ?? false);
     final args = LaunchArgsComposer.compose(
       profile: profile,
       userDataDir: userDataDir,
       debugPort: port,
+      startUrlOverride: needsProxyAuth ? '' : null,
     );
 
     final Process process;
@@ -71,10 +81,7 @@ class BrowserLauncher {
       throw LaunchException('CDP endpoint did not come up on port $port');
     }
 
-    // Authenticated proxies can't carry credentials on --proxy-server, so feed
-    // them over CDP. Best-effort: a failure here must not block the launch.
-    final proxy = profile.stealth.proxy;
-    if (proxy.enabled && (proxy.username?.isNotEmpty ?? false)) {
+    if (needsProxyAuth) {
       try {
         final browserWs = await _discovery.browserWebSocketUrl(httpBase);
         final auth = ProxyAuthenticator(
@@ -84,6 +91,15 @@ class BrowserLauncher {
         );
         await auth.start();
         _authenticators[profile.id] = auth;
+
+        // Now that Fetch is enabled on the browser session and auto-attach
+        // with waitForDebuggerOnStart is wired up, create the page target
+        // ourselves. The new target is auto-attached and paused; the
+        // authenticator's handler will enable Fetch on its session and
+        // resume it before the page can fire requests.
+        if (profile.startUrl.isNotEmpty) {
+          await _navigateAfterAuth(browserWs, profile.startUrl);
+        }
       } catch (_) {
         // Proxy auth setup failed; the page may still prompt for credentials.
       }
@@ -103,6 +119,19 @@ class BrowserLauncher {
     // Auto-cleanup when the process exits on its own.
     unawaited(process.exitCode.then((_) => _cleanup(profile.id)));
     return running;
+  }
+
+  /// Creates a new page target for [url]. The ProxyAuthenticator's
+  /// Target.setAutoAttach handler will Fetch.enable + runIfWaitingForDebugger
+  /// on the new target's session so it can actually load the URL.
+  Future<void> _navigateAfterAuth(String browserWsUrl, String url) async {
+    final nav = CdpClient(browserWsUrl);
+    try {
+      await nav.connect();
+      await nav.send('Target.createTarget', {'url': url});
+    } finally {
+      await nav.close();
+    }
   }
 
   Future<void> stop(String profileId) async {

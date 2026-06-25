@@ -28,10 +28,16 @@ class ProxyAuthenticator {
   Future<void> start() async {
     await _client.connect();
     _sub = _client.events.listen(_onEvent);
+    // Proxy 407 challenges are intercepted at the browser-level session,
+    // not on individual page sessions, so Fetch must be enabled here too.
+    await _client.send('Fetch.enable', {'handleAuthRequests': true});
     // Auto-attach (flattened) so all target events arrive on this connection.
+    // waitForDebuggerOnStart pauses each new target until we send
+    // Runtime.runIfWaitingForDebugger, giving us time to enable Fetch
+    // before the page can fire requests.
     await _client.send('Target.setAutoAttach', {
       'autoAttach': true,
-      'waitForDebuggerOnStart': false,
+      'waitForDebuggerOnStart': true,
       'flatten': true,
     });
   }
@@ -44,6 +50,10 @@ class ProxyAuthenticator {
           if (sessionId != null) {
             await _client.send(
                 'Fetch.enable', {'handleAuthRequests': true}, sessionId);
+            // The target is paused (waitForDebuggerOnStart). Resume it so
+            // it can actually run; without this the page hangs forever.
+            await _client.send(
+                'Runtime.runIfWaitingForDebugger', const {}, sessionId);
           }
         case 'Fetch.authRequired':
           final requestId = e.params['requestId'];
