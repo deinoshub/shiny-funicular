@@ -10,6 +10,8 @@ export 'src/binary/sha256_verifier.dart';
 export 'src/binary/sha256sums.dart';
 export 'src/launcher/launch_args_composer.dart';
 export 'src/launcher/port_allocator.dart';
+export 'src/launcher/process_registry.dart';
+export 'src/launcher/running_process.dart';
 export 'src/models/installed_version.dart';
 export 'src/models/profile.dart';
 export 'src/models/release_info.dart';
