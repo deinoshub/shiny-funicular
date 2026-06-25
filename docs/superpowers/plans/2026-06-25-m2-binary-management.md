@@ -147,12 +147,16 @@ class AppPaths {
   }) {
     final env = environment ?? Platform.environment;
     final os = operatingSystem ?? Platform.operatingSystem;
+    // Build the base path in the target OS's path style so resolving for a
+    // foreign OS (e.g. in tests) yields that OS's separators.
+    final ctx = p.Context(
+        style: os == 'windows' ? p.Style.windows : p.Style.posix);
     final base = switch (os) {
-      'macos' => p.join(
+      'macos' => ctx.join(
           env['HOME'] ?? '', 'Library', 'Application Support', 'CloakManager'),
-      'windows' => p.join(env['APPDATA'] ?? '', 'CloakManager'),
-      _ => p.join(
-          env['XDG_DATA_HOME'] ?? p.join(env['HOME'] ?? '', '.local', 'share'),
+      'windows' => ctx.join(env['APPDATA'] ?? '', 'CloakManager'),
+      _ => ctx.join(
+          env['XDG_DATA_HOME'] ?? ctx.join(env['HOME'] ?? '', '.local', 'share'),
           'CloakManager'),
     };
     return AppPaths(Directory(base));
