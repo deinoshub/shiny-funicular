@@ -1,5 +1,6 @@
 import 'package:cloak_core/cloak_core.dart';
 import 'package:cloakmanager/screens/home/home_shell.dart';
+import 'package:cloakmanager/screens/onboarding/onboarding_screen.dart';
 import 'package:cloakmanager/state/binary_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,9 +17,9 @@ void main() {
     await tester.pump();
   }
 
-  testWidgets('shows onboarding placeholder when not installed', (tester) async {
+  testWidgets('shows onboarding when not installed', (tester) async {
     await pump(tester, const NotInstalled());
-    expect(find.byKey(const Key('not-installed')), findsOneWidget);
+    expect(find.byType(OnboardingScreen), findsOneWidget);
   });
 
   testWidgets('shows home when installed', (tester) async {
