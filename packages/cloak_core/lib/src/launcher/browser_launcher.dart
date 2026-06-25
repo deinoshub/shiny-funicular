@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import '../cdp/cdp_discovery.dart';
+import '../cdp/proxy_authenticator.dart';
 import '../models/profile.dart';
 import '../storage/app_paths.dart';
 import 'launch_args_composer.dart';
@@ -41,6 +42,7 @@ class BrowserLauncher {
   final SpawnFn _spawn;
 
   final Map<String, Process> _processes = {};
+  final Map<String, ProxyAuthenticator> _authenticators = {};
 
   Future<RunningProcess> launch({
     required Profile profile,
@@ -67,6 +69,24 @@ class BrowserLauncher {
     if (!ready) {
       process.kill();
       throw LaunchException('CDP endpoint did not come up on port $port');
+    }
+
+    // Authenticated proxies can't carry credentials on --proxy-server, so feed
+    // them over CDP. Best-effort: a failure here must not block the launch.
+    final proxy = profile.stealth.proxy;
+    if (proxy.enabled && (proxy.username?.isNotEmpty ?? false)) {
+      try {
+        final browserWs = await _discovery.browserWebSocketUrl(httpBase);
+        final auth = ProxyAuthenticator(
+          browserWsUrl: browserWs,
+          username: proxy.username!,
+          password: proxy.password ?? '',
+        );
+        await auth.start();
+        _authenticators[profile.id] = auth;
+      } catch (_) {
+        // Proxy auth setup failed; the page may still prompt for credentials.
+      }
     }
 
     final running = RunningProcess(
@@ -99,6 +119,7 @@ class BrowserLauncher {
   Future<void> _cleanup(String profileId) async {
     final running = registry.byProfile(profileId);
     _processes.remove(profileId);
+    await _authenticators.remove(profileId)?.stop();
     registry.remove(profileId);
     if (running != null && running.ephemeral) {
       final dir = Directory(running.userDataDir);

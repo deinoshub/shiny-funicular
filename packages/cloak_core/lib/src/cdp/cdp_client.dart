@@ -9,6 +9,15 @@ class CdpException implements Exception {
   String toString() => 'CdpException: $message';
 }
 
+/// A CDP event (a message with a `method` but no `id`). [sessionId] is set
+/// for events delivered over a flattened auto-attached session.
+class CdpEvent {
+  CdpEvent({required this.method, required this.params, this.sessionId});
+  final String method;
+  final Map<String, dynamic> params;
+  final String? sessionId;
+}
+
 /// Minimal Chrome DevTools Protocol client over a WebSocket.
 class CdpClient {
   CdpClient(this.webSocketUrl);
@@ -17,6 +26,11 @@ class CdpClient {
   WebSocketChannel? _channel;
   int _nextId = 0;
   final Map<int, Completer<Map<String, dynamic>>> _pending = {};
+  final StreamController<CdpEvent> _events =
+      StreamController<CdpEvent>.broadcast();
+
+  /// Protocol events (messages with a `method` and no `id`).
+  Stream<CdpEvent> get events => _events.stream;
 
   Future<void> connect() async {
     final channel = WebSocketChannel.connect(Uri.parse(webSocketUrl));
@@ -32,7 +46,18 @@ class CdpClient {
   void _onMessage(dynamic data) {
     final msg = jsonDecode(data as String) as Map<String, dynamic>;
     final id = msg['id'];
-    if (id is! int) return; // event, not a command reply
+    if (id is! int) {
+      // Event (possibly session-scoped) rather than a command reply.
+      final method = msg['method'];
+      if (method is String && !_events.isClosed) {
+        _events.add(CdpEvent(
+          method: method,
+          params: (msg['params'] as Map<String, dynamic>?) ?? const {},
+          sessionId: msg['sessionId'] as String?,
+        ));
+      }
+      return;
+    }
     final completer = _pending.remove(id);
     if (completer == null) return;
     if (msg.containsKey('error')) {
@@ -51,7 +76,7 @@ class CdpClient {
   }
 
   Future<Map<String, dynamic>> send(String method,
-      [Map<String, dynamic>? params]) {
+      [Map<String, dynamic>? params, String? sessionId]) {
     final channel = _channel;
     if (channel == null) throw CdpException('not connected');
     final id = _nextId++;
@@ -61,6 +86,7 @@ class CdpClient {
       'id': id,
       'method': method,
       if (params != null) 'params': params,
+      if (sessionId != null) 'sessionId': sessionId,
     }));
     return completer.future;
   }
@@ -77,5 +103,6 @@ class CdpClient {
     await _channel?.sink.close();
     _channel = null;
     _failAllPending();
+    if (!_events.isClosed) await _events.close();
   }
 }
