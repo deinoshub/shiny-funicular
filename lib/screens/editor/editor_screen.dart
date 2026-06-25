@@ -86,6 +86,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                       : null,
                   child: const Text('Save'),
                 ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  color: Theme.of(context).colorScheme.error,
+                  tooltip: 'Delete profile',
+                  onPressed: () => _confirmDelete(context, draft.name),
+                ),
               ],
             ),
           ),
@@ -100,5 +107,31 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _confirmDelete(BuildContext context, String name) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete profile?'),
+        content: Text(
+            'This permanently removes "$name" and its browser data. '
+            'This cannot be undone.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          FilledButton(
+            style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(ctx).colorScheme.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await deleteProfile(ref, widget.profileId);
+    ref.read(selectedProfileIdProvider.notifier).state = null;
   }
 }

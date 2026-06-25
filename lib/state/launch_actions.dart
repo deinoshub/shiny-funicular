@@ -30,3 +30,12 @@ Future<void> stopProfile(WidgetRef ref, String profileId) =>
 
 Future<void> stopAllProfiles(WidgetRef ref) =>
     ref.read(browserLauncherProvider).stopAll();
+
+/// Stops the profile if running, removes its DB row, and deletes its
+/// on-disk user-data directory.
+Future<void> deleteProfile(WidgetRef ref, String profileId) async {
+  await stopProfile(ref, profileId);
+  final dir = ref.read(appPathsProvider).profileDir(profileId);
+  await ref.read(profileListProvider.notifier).remove(profileId);
+  if (await dir.exists()) await dir.delete(recursive: true);
+}

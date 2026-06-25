@@ -1,6 +1,7 @@
 import 'package:cloak_core/cloak_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../widgets/draft_text_field.dart';
 import '../../widgets/icon_catalog.dart';
 import '../../widgets/labeled_field.dart';
 
@@ -16,16 +17,15 @@ class GeneralTab extends StatelessWidget {
       children: [
         LabeledField(
           label: 'Name',
-          child: TextField(
-            controller: TextEditingController(text: draft.name)
-              ..selection = TextSelection.collapsed(offset: draft.name.length),
+          child: DraftTextField(
+            initialValue: draft.name,
             onChanged: (v) => onChanged(draft.copyWith(name: v)),
           ),
         ),
         LabeledField(
           label: 'Group',
-          child: TextField(
-            controller: TextEditingController(text: draft.groupName ?? ''),
+          child: DraftTextField(
+            initialValue: draft.groupName ?? '',
             onChanged: (v) =>
                 onChanged(draft.copyWith(groupName: v.isEmpty ? null : v)),
           ),
@@ -61,16 +61,16 @@ class GeneralTab extends StatelessWidget {
         ),
         LabeledField(
           label: 'Start URL',
-          child: TextField(
-            controller: TextEditingController(text: draft.startUrl),
+          child: DraftTextField(
+            initialValue: draft.startUrl,
             onChanged: (v) => onChanged(draft.copyWith(startUrl: v)),
           ),
         ),
         LabeledField(
           label: 'Notes',
-          child: TextField(
+          child: DraftTextField(
+            initialValue: draft.notes,
             maxLines: 3,
-            controller: TextEditingController(text: draft.notes),
             onChanged: (v) => onChanged(draft.copyWith(notes: v)),
           ),
         ),

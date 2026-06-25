@@ -1,6 +1,7 @@
 import 'package:cloak_core/cloak_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../widgets/draft_text_field.dart';
 import '../../widgets/labeled_field.dart';
 
 class ProxyTab extends StatelessWidget {
@@ -38,39 +39,39 @@ class ProxyTab extends StatelessWidget {
         ),
         LabeledField(
           label: 'Host',
-          child: TextField(
-            controller: TextEditingController(text: px.host),
+          child: DraftTextField(
+            initialValue: px.host,
             onChanged: (v) => _set(px.copyWith(host: v)),
           ),
         ),
         LabeledField(
           label: 'Port',
-          child: TextField(
-            controller: TextEditingController(text: px.port == 0 ? '' : '${px.port}'),
+          child: DraftTextField(
+            initialValue: px.port == 0 ? '' : '${px.port}',
             keyboardType: TextInputType.number,
             onChanged: (v) => _set(px.copyWith(port: int.tryParse(v) ?? 0)),
           ),
         ),
         LabeledField(
           label: 'Username',
-          child: TextField(
-            controller: TextEditingController(text: px.username ?? ''),
+          child: DraftTextField(
+            initialValue: px.username ?? '',
             onChanged: (v) => _set(px.copyWith(username: v.isEmpty ? null : v)),
           ),
         ),
         LabeledField(
           label: 'Password',
-          child: TextField(
+          child: DraftTextField(
+            initialValue: px.password ?? '',
             obscureText: true,
-            controller: TextEditingController(text: px.password ?? ''),
             onChanged: (v) => _set(px.copyWith(password: v.isEmpty ? null : v)),
           ),
         ),
         LabeledField(
           label: 'Bypass list',
-          child: TextField(
-            controller: TextEditingController(text: px.bypassList),
-            decoration: const InputDecoration(hintText: 'localhost,127.0.0.1'),
+          child: DraftTextField(
+            initialValue: px.bypassList,
+            hintText: 'localhost,127.0.0.1',
             onChanged: (v) => _set(px.copyWith(bypassList: v)),
           ),
         ),

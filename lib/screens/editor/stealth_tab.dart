@@ -1,6 +1,7 @@
 import 'package:cloak_core/cloak_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../widgets/draft_text_field.dart';
 import '../../widgets/labeled_field.dart';
 
 class StealthTab extends StatelessWidget {
@@ -19,9 +20,9 @@ class StealthTab extends StatelessWidget {
         _section(context, 'Identity'),
         LabeledField(
           label: 'Fingerprint seed',
-          child: TextField(
-            controller: TextEditingController(text: s.fingerprintSeed ?? ''),
-            decoration: const InputDecoration(hintText: 'blank = random each launch'),
+          child: DraftTextField(
+            initialValue: s.fingerprintSeed ?? '',
+            hintText: 'blank = random each launch',
             onChanged: (v) =>
                 _set(s.copyWith(fingerprintSeed: v.isEmpty ? null : v)),
           ),
@@ -62,9 +63,9 @@ class StealthTab extends StatelessWidget {
         ),
         LabeledField(
           label: 'Brand version',
-          child: TextField(
-            controller: TextEditingController(text: s.brandVersion ?? ''),
-            decoration: InputDecoration(hintText: s.brand.defaultVersion),
+          child: DraftTextField(
+            initialValue: s.brandVersion ?? '',
+            hintText: s.brand.defaultVersion,
             onChanged: (v) =>
                 _set(s.copyWith(brandVersion: v.isEmpty ? null : v)),
           ),
@@ -118,9 +119,9 @@ class StealthTab extends StatelessWidget {
           ValueChanged<String?> onChanged, {String? hint}) =>
       LabeledField(
         label: label,
-        child: TextField(
-          controller: TextEditingController(text: value ?? ''),
-          decoration: InputDecoration(hintText: hint),
+        child: DraftTextField(
+          initialValue: value ?? '',
+          hintText: hint,
           onChanged: (v) => onChanged(v.isEmpty ? null : v),
         ),
       );
@@ -129,8 +130,8 @@ class StealthTab extends StatelessWidget {
           ValueChanged<int?> onChanged) =>
       LabeledField(
         label: label,
-        child: TextField(
-          controller: TextEditingController(text: value?.toString() ?? ''),
+        child: DraftTextField(
+          initialValue: value?.toString() ?? '',
           keyboardType: TextInputType.number,
           onChanged: (v) => onChanged(v.isEmpty ? null : int.tryParse(v)),
         ),

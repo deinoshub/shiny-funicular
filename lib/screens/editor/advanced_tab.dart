@@ -1,6 +1,8 @@
 import 'package:cloak_core/cloak_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../widgets/draft_text_field.dart';
+
 /// Renders the exact launch argv (with placeholder dir/port) for the draft.
 String computedArgsPreview(Profile draft) => LaunchArgsComposer.compose(
       profile: draft,
@@ -21,11 +23,10 @@ class AdvancedTab extends StatelessWidget {
         Text('Custom Chromium args (one per line)',
             style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 6),
-        TextField(
+        DraftTextField(
           maxLines: 4,
-          controller: TextEditingController(text: draft.customArgs.join('\n')),
-          decoration: const InputDecoration(border: OutlineInputBorder()),
-          onSubmitted: (v) => onChanged(draft.copyWith(
+          initialValue: draft.customArgs.join('\n'),
+          onChanged: (v) => onChanged(draft.copyWith(
             customArgs:
                 v.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
           )),
@@ -34,12 +35,11 @@ class AdvancedTab extends StatelessWidget {
         Text('Environment variables (KEY=VALUE per line)',
             style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 6),
-        TextField(
+        DraftTextField(
           maxLines: 3,
-          controller: TextEditingController(
-              text: draft.customEnv.entries.map((e) => '${e.key}=${e.value}').join('\n')),
-          decoration: const InputDecoration(border: OutlineInputBorder()),
-          onSubmitted: (v) => onChanged(draft.copyWith(customEnv: _parseEnv(v))),
+          initialValue:
+              draft.customEnv.entries.map((e) => '${e.key}=${e.value}').join('\n'),
+          onChanged: (v) => onChanged(draft.copyWith(customEnv: _parseEnv(v))),
         ),
         const SizedBox(height: 16),
         Text('Computed arguments',
