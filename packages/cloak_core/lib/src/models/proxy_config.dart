@@ -33,12 +33,21 @@ class ProxyConfig {
         port: 0,
       );
 
-  /// `<scheme>://[user:pass@]host:port` for `--proxy-server`.
+  String get _scheme => type == ProxyType.socks5 ? 'socks5' : 'http';
+
+  /// `<scheme>://host:port` — the value for Chromium's `--proxy-server`.
+  ///
+  /// Chromium's `--proxy-server` does NOT accept inline `user:pass@`
+  /// credentials; including them makes the host unparseable and yields
+  /// `ERR_NO_SUPPORTED_PROXIES`. Credentials are handled separately.
+  String get serverEndpoint => '$_scheme://$host:$port';
+
+  /// `<scheme>://[user:pass@]host:port` — for display / connection testing,
+  /// NOT for the launch flag. Use [serverEndpoint] for `--proxy-server`.
   String get serverString {
-    final scheme = type == ProxyType.socks5 ? 'socks5' : 'http';
     final hasAuth = (username != null && username!.isNotEmpty);
     final auth = hasAuth ? '$username:${password ?? ''}@' : '';
-    return '$scheme://$auth$host:$port';
+    return '$_scheme://$auth$host:$port';
   }
 
   Map<String, dynamic> toJson() => {

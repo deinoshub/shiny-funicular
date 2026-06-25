@@ -172,6 +172,11 @@ current feature set; they extend it.
 - [ ] Tags-based filtering and saved views in the sidebar
 
 ### Stealth & networking
+- [ ] **Authenticated proxy support** — Chromium's `--proxy-server` rejects inline
+      `user:pass@` credentials (causes `ERR_NO_SUPPORTED_PROXIES`), so credentials
+      are currently stripped from the launch flag. Handle proxy auth via CDP
+      (`Fetch.enable` + `Fetch.continueWithAuth`) so authenticated proxies work
+      without a 407 prompt.
 - [ ] Proxy rotation / proxy pools
 - [ ] Browser-extension manager
 - [ ] GeoIP preview (show the resolved timezone/locale before launch)

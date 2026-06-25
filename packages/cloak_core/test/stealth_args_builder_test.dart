@@ -71,6 +71,21 @@ void main() {
     expect(args, contains('--proxy-bypass-list=localhost,127.0.0.1'));
   });
 
+  test('proxy credentials are NOT embedded in --proxy-server', () {
+    final args = StealthArgsBuilder.build(StealthConfig(
+      proxy: const ProxyConfig(
+        enabled: true,
+        type: ProxyType.socks5,
+        host: 'proxy.example.com',
+        port: 1080,
+        username: 'user',
+        password: 'pass',
+      ),
+    ));
+    expect(args, contains('--proxy-server=socks5://proxy.example.com:1080'));
+    expect(args.any((a) => a.contains('user:pass')), isFalse);
+  });
+
   test('full config produces the worked-example flag set', () {
     final args = StealthArgsBuilder.build(StealthConfig(
       fingerprintSeed: 'work-us-east-2026',

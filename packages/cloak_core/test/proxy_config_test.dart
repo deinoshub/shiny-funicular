@@ -24,6 +24,19 @@ void main() {
     expect(p.serverString, 'socks5://user:pass@proxy.example.com:1080');
   });
 
+  test('serverEndpoint omits credentials (for --proxy-server)', () {
+    const p = ProxyConfig(
+      enabled: true,
+      type: ProxyType.socks5,
+      host: 'proxy.example.com',
+      port: 1080,
+      username: 'user',
+      password: 'pass',
+    );
+    expect(p.serverEndpoint, 'socks5://proxy.example.com:1080');
+    expect(p.serverString, 'socks5://user:pass@proxy.example.com:1080');
+  });
+
   test('disabled() factory yields a disabled config', () {
     final p = ProxyConfig.disabled();
     expect(p.enabled, isFalse);

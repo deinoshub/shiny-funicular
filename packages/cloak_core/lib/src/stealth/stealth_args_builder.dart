@@ -55,7 +55,8 @@ class StealthArgsBuilder {
     }
 
     if (c.proxy.enabled) {
-      args.add('--proxy-server=${c.proxy.serverString}');
+      // Chromium's --proxy-server does not accept inline credentials.
+      args.add('--proxy-server=${c.proxy.serverEndpoint}');
       if (c.proxy.bypassList.isNotEmpty) {
         args.add('--proxy-bypass-list=${c.proxy.bypassList}');
       }
