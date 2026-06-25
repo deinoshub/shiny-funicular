@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 
 part 'database.g.dart';
 
+@DataClassName('ProfileRow')
 class Profiles extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();

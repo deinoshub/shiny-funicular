@@ -188,6 +188,9 @@ import 'package:drift/native.dart';
 
 part 'database.g.dart';
 
+// Named ProfileRow so the generated data class does not collide with
+// cloak_core's Profile model.
+@DataClassName('ProfileRow')
 class Profiles extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();
