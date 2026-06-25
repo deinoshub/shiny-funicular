@@ -57,6 +57,41 @@ class Profile {
         'sortOrder': sortOrder,
       };
 
+  Profile copyWith({
+    String? name,
+    String? notes,
+    String? colorHex,
+    String? iconName,
+    String? groupName,
+    DateTime? updatedAt,
+    DateTime? lastLaunchedAt,
+    StealthConfig? stealth,
+    bool? persistent,
+    String? startUrl,
+    List<String>? customArgs,
+    Map<String, String>? customEnv,
+    List<String>? tags,
+    int? sortOrder,
+  }) =>
+      Profile(
+        id: id,
+        name: name ?? this.name,
+        notes: notes ?? this.notes,
+        colorHex: colorHex ?? this.colorHex,
+        iconName: iconName ?? this.iconName,
+        groupName: groupName ?? this.groupName,
+        createdAt: createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+        lastLaunchedAt: lastLaunchedAt ?? this.lastLaunchedAt,
+        stealth: stealth ?? this.stealth,
+        persistent: persistent ?? this.persistent,
+        startUrl: startUrl ?? this.startUrl,
+        customArgs: customArgs ?? this.customArgs,
+        customEnv: customEnv ?? this.customEnv,
+        tags: tags ?? this.tags,
+        sortOrder: sortOrder ?? this.sortOrder,
+      );
+
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
         id: json['id'] as String,
         name: json['name'] as String,

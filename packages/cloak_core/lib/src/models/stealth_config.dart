@@ -68,6 +68,47 @@ class StealthConfig {
         'proxy': proxy.toJson(),
       };
 
+  StealthConfig copyWith({
+    String? fingerprintSeed,
+    SpoofPlatform? platform,
+    BrowserBrand? brand,
+    String? brandVersion,
+    String? platformVersion,
+    int? hardwareConcurrency,
+    int? deviceMemoryGB,
+    int? screenWidth,
+    int? screenHeight,
+    String? timezone,
+    String? locale,
+    String? gpuVendor,
+    String? gpuRenderer,
+    bool? noiseEnabled,
+    int? storageQuotaMB,
+    WebRtcIpPolicy? webrtcIpPolicy,
+    String? explicitWebRtcIp,
+    ProxyConfig? proxy,
+  }) =>
+      StealthConfig(
+        fingerprintSeed: fingerprintSeed ?? this.fingerprintSeed,
+        platform: platform ?? this.platform,
+        brand: brand ?? this.brand,
+        brandVersion: brandVersion ?? this.brandVersion,
+        platformVersion: platformVersion ?? this.platformVersion,
+        hardwareConcurrency: hardwareConcurrency ?? this.hardwareConcurrency,
+        deviceMemoryGB: deviceMemoryGB ?? this.deviceMemoryGB,
+        screenWidth: screenWidth ?? this.screenWidth,
+        screenHeight: screenHeight ?? this.screenHeight,
+        timezone: timezone ?? this.timezone,
+        locale: locale ?? this.locale,
+        gpuVendor: gpuVendor ?? this.gpuVendor,
+        gpuRenderer: gpuRenderer ?? this.gpuRenderer,
+        noiseEnabled: noiseEnabled ?? this.noiseEnabled,
+        storageQuotaMB: storageQuotaMB ?? this.storageQuotaMB,
+        webrtcIpPolicy: webrtcIpPolicy ?? this.webrtcIpPolicy,
+        explicitWebRtcIp: explicitWebRtcIp ?? this.explicitWebRtcIp,
+        proxy: proxy ?? this.proxy,
+      );
+
   factory StealthConfig.fromJson(Map<String, dynamic> json) => StealthConfig(
         fingerprintSeed: json['fingerprintSeed'] as String?,
         platform: SpoofPlatform.values.byName(json['platform'] as String),

@@ -63,6 +63,27 @@ class ProxyConfig {
         geoipEnabled: (json['geoipEnabled'] as bool?) ?? false,
       );
 
+  ProxyConfig copyWith({
+    bool? enabled,
+    ProxyType? type,
+    String? host,
+    int? port,
+    String? username,
+    String? password,
+    String? bypassList,
+    bool? geoipEnabled,
+  }) =>
+      ProxyConfig(
+        enabled: enabled ?? this.enabled,
+        type: type ?? this.type,
+        host: host ?? this.host,
+        port: port ?? this.port,
+        username: username ?? this.username,
+        password: password ?? this.password,
+        bypassList: bypassList ?? this.bypassList,
+        geoipEnabled: geoipEnabled ?? this.geoipEnabled,
+      );
+
   @override
   bool operator ==(Object other) =>
       other is ProxyConfig &&
