@@ -2,6 +2,7 @@
 library;
 
 export 'src/models/enums.dart';
+export 'src/binary/sha256_verifier.dart';
 export 'src/binary/sha256sums.dart';
 export 'src/launcher/port_allocator.dart';
 export 'src/models/profile.dart';
