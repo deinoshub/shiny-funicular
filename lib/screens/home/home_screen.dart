@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../state/launch_actions.dart';
 import '../../state/profile_list.dart';
-import '../../state/providers.dart';
 import '../../state/selection.dart';
 import '../editor/editor_screen.dart';
 import 'sidebar.dart';
@@ -55,7 +55,8 @@ class HomeScreen extends ConsumerWidget {
               Expanded(
                 child: selected == null
                     ? const Center(child: Text('Select or create a profile'))
-                    : EditorScreen(profileId: selected.id),
+                    : EditorScreen(
+                        key: ValueKey(selected.id), profileId: selected.id),
               ),
             ],
           ),
@@ -75,24 +76,13 @@ class HomeScreen extends ConsumerWidget {
     final profiles = ref.read(profileListProvider).valueOrNull ?? const [];
     final profile = findById(profiles, id);
     if (profile == null) return;
-    final bm = ref.read(binaryManagerProvider);
-    final manifest = await bm.loadManifest();
-    final active = manifest.active;
-    if (active == null) return;
-    final exe = bm.executablePathFor(active);
-    await ref
-        .read(browserLauncherProvider)
-        .launch(profile: profile, executablePath: exe);
-    await ref
-        .read(profileListProvider.notifier)
-        .save(profile.copyWith(lastLaunchedAt: DateTime.now().toUtc()));
+    await launchProfile(ref, profile);
   }
 
   Future<void> _stop(WidgetRef ref) async {
     final id = ref.read(selectedProfileIdProvider);
-    if (id != null) await ref.read(browserLauncherProvider).stop(id);
+    if (id != null) await stopProfile(ref, id);
   }
 
-  Future<void> _stopAll(WidgetRef ref) =>
-      ref.read(browserLauncherProvider).stopAll();
+  Future<void> _stopAll(WidgetRef ref) => stopAllProfiles(ref);
 }

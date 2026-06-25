@@ -2,7 +2,9 @@ import 'package:cloak_core/cloak_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../state/launch_actions.dart';
 import '../../state/profile_list.dart';
+import '../../state/selection.dart';
 import '../home/home_screen.dart' show findById;
 import 'advanced_tab.dart';
 import 'general_tab.dart';
@@ -32,6 +34,8 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     void onChanged(Profile next) => setState(() => _draft = next);
 
     final canSave = draft.name.trim().isNotEmpty;
+    final running = ref.watch(runningProfilesProvider).valueOrNull ?? <String>{};
+    final isRunning = running.contains(widget.profileId);
 
     return DefaultTabController(
       length: 4,
@@ -50,7 +54,26 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                   ]),
                 ),
                 const SizedBox(width: 8),
-                FilledButton(
+                if (isRunning)
+                  OutlinedButton.icon(
+                    onPressed: () => stopProfile(ref, widget.profileId),
+                    icon: const Icon(Icons.stop),
+                    label: const Text('Stop'),
+                  )
+                else
+                  FilledButton.icon(
+                    onPressed: () async {
+                      final error = await launchProfile(ref, draft);
+                      if (error != null && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(error)));
+                      }
+                    },
+                    icon: const Icon(Icons.play_arrow),
+                    label: const Text('Launch'),
+                  ),
+                const SizedBox(width: 8),
+                OutlinedButton(
                   onPressed: canSave
                       ? () async {
                           await ref.read(profileListProvider.notifier).save(
