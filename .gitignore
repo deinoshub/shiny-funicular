@@ -22,8 +22,6 @@ Thumbs.db
 # Local command exports
 *-command-message*.txt
 
-# CloakManager runtime data (never commit user data / binaries)
-binary/
-profiles/
-downloads/
+# CloakManager runtime data lives in the OS app-support dir, not the repo.
+# Only guard against accidental local copies of the DB.
 *.sqlite
