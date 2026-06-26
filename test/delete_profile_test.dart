@@ -3,9 +3,9 @@ import 'package:cloakmanager/data/database.dart';
 import 'package:cloakmanager/data/profile_dao.dart';
 import 'package:cloakmanager/screens/editor/editor_screen.dart';
 import 'package:cloakmanager/state/providers.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:macos_ui/macos_ui.dart';
 
 Profile _profile(String id, String name) => Profile(
       id: id,
@@ -30,17 +30,19 @@ void main() {
         databaseProvider.overrideWithValue(db),
         profileDaoProvider.overrideWithValue(dao),
       ],
-      child: const MaterialApp(
-        home: Scaffold(body: EditorScreen(profileId: 'p1')),
+      child: const MacosApp(
+        home: MacosWindow(child: EditorScreen(profileId: 'p1')),
       ),
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.delete_outline));
+    // Toolbar delete button (only 'Delete' label on screen before dialog).
+    await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
     expect(find.text('Delete profile?'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    // Confirm via the dialog's primary push button.
+    await tester.tap(find.widgetWithText(PushButton, 'Delete'));
     await tester.pumpAndSettle();
 
     expect(await dao.all(), isEmpty);

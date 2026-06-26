@@ -1,6 +1,8 @@
 import 'package:cloak_core/cloak_core.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:macos_ui/macos_ui.dart';
 
 import '../../state/launch_actions.dart';
 import '../../state/profile_list.dart';
@@ -21,6 +23,13 @@ class EditorScreen extends ConsumerStatefulWidget {
 
 class _EditorScreenState extends ConsumerState<EditorScreen> {
   Profile? _draft;
+  final _tabController = MacosTabController(initialIndex: 0, length: 4);
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,104 +39,162 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       return const Center(child: Text('Profile not found'));
     }
     final draft = _draft ??= current;
-
     void onChanged(Profile next) => setState(() => _draft = next);
 
     final canSave = draft.name.trim().isNotEmpty;
     final running = ref.watch(runningProfilesProvider).valueOrNull ?? <String>{};
     final isRunning = running.contains(widget.profileId);
 
-    return DefaultTabController(
-      length: 4,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              children: [
-                const Expanded(
-                  child: TabBar(tabs: [
-                    Tab(text: 'General'),
-                    Tab(text: 'Stealth'),
-                    Tab(text: 'Proxy'),
-                    Tab(text: 'Advanced'),
-                  ]),
-                ),
-                const SizedBox(width: 8),
-                if (isRunning)
-                  OutlinedButton.icon(
-                    onPressed: () => stopProfile(ref, widget.profileId),
-                    icon: const Icon(Icons.stop),
-                    label: const Text('Stop'),
-                  )
-                else
-                  FilledButton.icon(
-                    onPressed: () async {
-                      final error = await launchProfile(ref, draft);
-                      if (error != null && context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(error)));
-                      }
-                    },
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Launch'),
-                  ),
-                const SizedBox(width: 8),
-                OutlinedButton(
-                  onPressed: canSave
-                      ? () async {
-                          await ref.read(profileListProvider.notifier).save(
-                              draft.copyWith(updatedAt: DateTime.now().toUtc()));
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Saved')));
-                          }
-                        }
-                      : null,
-                  child: const Text('Save'),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  color: Theme.of(context).colorScheme.error,
-                  tooltip: 'Delete profile',
-                  onPressed: () => _confirmDelete(context, draft.name),
-                ),
-              ],
-            ),
+    return MacosScaffold(
+      toolBar: ToolBar(
+        title: SizedBox(
+          width: 500,
+          child: MacosSegmentedControl(
+            controller: _tabController,
+            tabs: const [
+              MacosTab(label: 'General'),
+              MacosTab(label: 'Stealth'),
+              MacosTab(label: 'Proxy'),
+              MacosTab(label: 'Advanced'),
+            ],
           ),
-          Expanded(
-            child: TabBarView(children: [
-              GeneralTab(draft: draft, onChanged: onChanged),
-              StealthTab(draft: draft, onChanged: onChanged),
-              ProxyTab(draft: draft, onChanged: onChanged),
-              AdvancedTab(draft: draft, onChanged: onChanged),
-            ]),
+        ),
+        titleWidth: 520,
+        actions: [
+          _toolBarAction(
+            label: isRunning ? 'Stop' : 'Launch',
+            icon: isRunning ? CupertinoIcons.stop_fill : CupertinoIcons.play_fill,
+            onPressed: () async {
+              if (isRunning) {
+                await stopProfile(ref, widget.profileId);
+              } else {
+                final error = await launchProfile(ref, draft);
+                if (error != null && context.mounted) {
+                  await showMacosAlertDialog(
+                    context: context,
+                    builder: (_) => MacosAlertDialog(
+                      appIcon: const MacosIcon(CupertinoIcons.exclamationmark_triangle),
+                      title: const Text('Launch failed'),
+                      message: Text(error),
+                      primaryButton: PushButton(
+                        controlSize: ControlSize.large,
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('OK'),
+                      ),
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+          _toolBarAction(
+            label: 'Save',
+            icon: CupertinoIcons.tray_arrow_down,
+            onPressed: canSave
+                ? () async {
+                    await ref.read(profileListProvider.notifier).save(
+                        draft.copyWith(updatedAt: DateTime.now().toUtc()));
+                  }
+                : null,
+          ),
+          _toolBarAction(
+            label: 'Delete',
+            icon: CupertinoIcons.trash,
+            onPressed: () => _confirmDelete(context, draft.name),
           ),
         ],
       ),
+      children: [
+        ContentArea(
+          builder: (context, scrollController) => Material(
+            type: MaterialType.transparency,
+            child: AnimatedBuilder(
+              animation: _tabController,
+              builder: (context, _) => IndexedStack(
+                index: _tabController.index,
+                children: [
+                  GeneralTab(draft: draft, onChanged: onChanged),
+                  StealthTab(draft: draft, onChanged: onChanged),
+                  ProxyTab(draft: draft, onChanged: onChanged),
+                  AdvancedTab(draft: draft, onChanged: onChanged),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  ToolbarItem _toolBarAction({
+    required String label,
+    required IconData icon,
+    required VoidCallback? onPressed,
+  }) {
+    return CustomToolbarItem(
+      inOverflowedBuilder: (context) =>
+          ToolbarOverflowMenuItem(label: label, onPressed: onPressed),
+      inToolbarBuilder: (context) {
+        final enabled = onPressed != null;
+        return MacosIconButton(
+          backgroundColor: MacosColors.transparent,
+          disabledColor: MacosColors.transparent,
+          boxConstraints: const BoxConstraints(
+            minHeight: 26,
+            minWidth: 26,
+            maxWidth: 64,
+            maxHeight: 44,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          onPressed: onPressed,
+          icon: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              MacosIcon(
+                icon,
+                size: 16,
+                color: MacosColors.systemGrayColor
+                    .withValues(alpha: enabled ? 1 : 0.4),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: MacosColors.systemGrayColor
+                      .withValues(alpha: enabled ? 1 : 0.4),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Future<void> _confirmDelete(BuildContext context, String name) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showMacosAlertDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => MacosAlertDialog(
+        appIcon: const MacosIcon(CupertinoIcons.trash),
         title: const Text('Delete profile?'),
-        content: Text(
-            'This permanently removes "$name" and its browser data. '
-            'This cannot be undone.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
-          FilledButton(
-            style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(ctx).colorScheme.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
-          ),
-        ],
+        message: Text(
+          'This permanently removes "$name" and its browser data. '
+          'This cannot be undone.',
+          textAlign: TextAlign.center,
+        ),
+        primaryButton: PushButton(
+          controlSize: ControlSize.large,
+          color: MacosColors.systemRedColor,
+          onPressed: () => Navigator.pop(ctx, true),
+          child: const Text('Delete'),
+        ),
+        secondaryButton: PushButton(
+          controlSize: ControlSize.large,
+          secondary: true,
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text('Cancel'),
+        ),
       ),
     );
     if (confirmed != true) return;
