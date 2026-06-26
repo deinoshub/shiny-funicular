@@ -1,13 +1,14 @@
 import 'package:cloak_core/cloak_core.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:macos_ui/macos_ui.dart';
 
 import '../../state/profile_list.dart';
 import '../../state/selection.dart';
 import '../../state/tab_titles.dart';
 import '../../widgets/icon_catalog.dart';
 import '../../widgets/status_dot.dart';
-import '../settings/settings_screen.dart';
 
 /// Pure filter used by the sidebar search box. Matches name or any tag.
 List<Profile> filterProfiles(List<Profile> profiles, String query) {
@@ -20,104 +21,125 @@ List<Profile> filterProfiles(List<Profile> profiles, String query) {
       .toList();
 }
 
-class Sidebar extends ConsumerStatefulWidget {
-  const Sidebar({super.key});
-  @override
-  ConsumerState<Sidebar> createState() => _SidebarState();
-}
+/// Grouped, selectable profile list rendered inside the macOS sidebar.
+class SidebarProfileList extends ConsumerWidget {
+  const SidebarProfileList({
+    super.key,
+    required this.query,
+    required this.scrollController,
+  });
 
-class _SidebarState extends ConsumerState<Sidebar> {
-  String _query = '';
+  final String query;
+  final ScrollController scrollController;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final profilesAsync = ref.watch(profileListProvider);
-    final running = ref.watch(runningProfilesProvider).valueOrNull ?? <String>{};
+    final running =
+        ref.watch(runningProfilesProvider).valueOrNull ?? <String>{};
     final tabTitles =
         ref.watch(tabTitlesProvider).valueOrNull ?? const <String, String>{};
     final selected = ref.watch(selectedProfileIdProvider);
+    final theme = MacosTheme.of(context);
 
-    return SizedBox(
-      width: 280,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Row(children: [
-              Expanded(
-                child: TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'Search',
-                    prefixIcon: Icon(Icons.search),
-                    isDense: true,
-                    border: OutlineInputBorder(),
+    return profilesAsync.when(
+      loading: () => const Center(child: ProgressCircle()),
+      error: (e, _) => Center(child: Text('Error: $e')),
+      data: (profiles) {
+        final filtered = filterProfiles(profiles, query);
+        final groups = <String, List<Profile>>{};
+        for (final p in filtered) {
+          groups.putIfAbsent(p.groupName ?? 'Ungrouped', () => []).add(p);
+        }
+        return ListView(
+          controller: scrollController,
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          children: [
+            for (final entry in groups.entries) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+                child: Text(
+                  entry.key.toUpperCase(),
+                  style: theme.typography.caption1.copyWith(
+                    color: MacosColors.systemGrayColor,
+                    fontWeight: FontWeight.w600,
                   ),
-                  onChanged: (v) => setState(() => _query = v),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.settings),
-                tooltip: 'Settings',
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              for (final p in entry.value)
+                _ProfileRow(
+                  profile: p,
+                  selected: p.id == selected,
+                  running: running.contains(p.id),
+                  subtitle: running.contains(p.id) ? tabTitles[p.id] : null,
+                  onTap: () => ref
+                      .read(selectedProfileIdProvider.notifier)
+                      .state = p.id,
                 ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ProfileRow extends StatelessWidget {
+  const _ProfileRow({
+    required this.profile,
+    required this.selected,
+    required this.running,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final Profile profile;
+  final bool selected;
+  final bool running;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = MacosTheme.of(context);
+    final bg = selected
+        ? theme.primaryColor.withValues(alpha: 0.18)
+        : const Color(0x00000000);
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          children: [
+            MacosIcon(IconCatalog.iconFor(profile.iconName), size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(profile.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.typography.body),
+                  if (subtitle != null)
+                    Text(subtitle!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.typography.caption1
+                            .copyWith(color: MacosColors.systemGrayColor)),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.add),
-                tooltip: 'New profile (Cmd/Ctrl+N)',
-                onPressed: () async {
-                  final p = await ref
-                      .read(profileListProvider.notifier)
-                      .create('New Profile');
-                  ref.read(selectedProfileIdProvider.notifier).state = p.id;
-                },
-              ),
-            ]),
-          ),
-          Expanded(
-            child: profilesAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
-              data: (profiles) {
-                final filtered = filterProfiles(profiles, _query);
-                final groups = <String, List<Profile>>{};
-                for (final p in filtered) {
-                  groups.putIfAbsent(p.groupName ?? 'Ungrouped', () => []).add(p);
-                }
-                return ListView(
-                  children: [
-                    for (final entry in groups.entries) ...[
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-                        child: Text(entry.key,
-                            style: Theme.of(context).textTheme.labelSmall),
-                      ),
-                      for (final p in entry.value)
-                        ListTile(
-                          dense: true,
-                          selected: p.id == selected,
-                          leading: Icon(IconCatalog.iconFor(p.iconName)),
-                          title: Text(p.name),
-                          subtitle: running.contains(p.id) &&
-                                  tabTitles[p.id] != null
-                              ? Text(
-                                  tabTitles[p.id]!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                )
-                              : null,
-                          trailing: StatusDot(running: running.contains(p.id)),
-                          onTap: () => ref
-                              .read(selectedProfileIdProvider.notifier)
-                              .state = p.id,
-                        ),
-                    ],
-                  ],
-                );
-              },
             ),
-          ),
-        ],
+            const SizedBox(width: 6),
+            StatusDot(running: running),
+          ],
+        ),
       ),
     );
   }
