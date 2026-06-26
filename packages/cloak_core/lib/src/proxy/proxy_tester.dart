@@ -4,13 +4,15 @@ import 'dart:io';
 
 import '../models/proxy_config.dart';
 import 'proxy_test_result.dart';
+import 'proxy_transport.dart';
 
 /// Runs a single through-proxy request and classifies the outcome.
 ///
 /// The network call is delegated to an injectable [ProxyTransport] so the
 /// classification/parsing logic here can be unit-tested with no network.
 class ProxyTester {
-  ProxyTester({required ProxyTransport transport}) : _transport = transport;
+  ProxyTester({ProxyTransport? transport})
+      : _transport = transport ?? defaultProxyTransport;
 
   final ProxyTransport _transport;
 
