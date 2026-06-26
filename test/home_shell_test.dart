@@ -6,9 +6,9 @@ import 'package:cloakmanager/screens/home/home_shell.dart';
 import 'package:cloakmanager/screens/onboarding/onboarding_screen.dart';
 import 'package:cloakmanager/state/binary_state.dart';
 import 'package:cloakmanager/state/providers.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:macos_ui/macos_ui.dart';
 
 void main() {
   late AppDatabase db;
@@ -22,7 +22,7 @@ void main() {
         databaseProvider.overrideWithValue(db),
         profileDaoProvider.overrideWithValue(ProfileDao(db)),
       ],
-      child: const MaterialApp(home: HomeShell()),
+      child: const MacosApp(home: HomeShell()),
     ));
     await tester.pumpAndSettle();
   }

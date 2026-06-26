@@ -1,19 +1,21 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show ThemeMode;
+import 'package:flutter/widgets.dart';
+import 'package:macos_ui/macos_ui.dart';
 
 import 'screens/home/home_shell.dart';
+import 'theme/app_theme.dart';
 
 class CloakManagerApp extends StatelessWidget {
   const CloakManagerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MacosApp(
       title: 'CloakManager',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF5E81F4)),
-        useMaterial3: true,
-      ),
+      theme: buildLightTheme(),
+      darkTheme: buildDarkTheme(),
+      themeMode: ThemeMode.system,
       home: const HomeShell(),
     );
   }

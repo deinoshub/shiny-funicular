@@ -1,14 +1,14 @@
 import 'package:cloakmanager/screens/onboarding/onboarding_screen.dart';
 import 'package:cloakmanager/state/binary_state.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:macos_ui/macos_ui.dart';
 
 void main() {
   Future<void> pump(WidgetTester tester, BinaryInstallState s) async {
     await tester.pumpWidget(ProviderScope(
       overrides: [binaryStateProvider.overrideWith(() => _Stub(s))],
-      child: const MaterialApp(home: OnboardingScreen()),
+      child: const MacosApp(home: OnboardingScreen()),
     ));
     await tester.pump();
   }
@@ -20,7 +20,7 @@ void main() {
 
   testWidgets('shows progress while downloading', (tester) async {
     await pump(tester, const Downloading(0.5, 50, 100));
-    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    expect(find.byType(ProgressBar), findsOneWidget);
     expect(find.textContaining('50%'), findsOneWidget);
   });
 

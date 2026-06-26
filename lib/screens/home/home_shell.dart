@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:macos_ui/macos_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../state/binary_state.dart';
@@ -12,9 +13,8 @@ class HomeShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(binaryStateProvider);
     return state.when(
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(body: Center(child: Text('Error: $e'))),
+      loading: () => const Center(child: ProgressCircle()),
+      error: (e, _) => Center(child: Text('Error: $e')),
       data: (s) => switch (s) {
         Installed() => const HomeScreen(),
         _ => const OnboardingScreen(),
