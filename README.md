@@ -163,7 +163,7 @@ current feature set; they extend it.
 
 ### Profiles & sessions
 - [ ] Drag-to-reorder profiles (the `sort_order` column is reserved for this)
-- [ ] Live CDP tab-title polling into the sidebar subtitle
+- [x] Live CDP tab-title polling into the sidebar subtitle
 - [ ] Per-profile launch/stop buttons in the editor header (shortcuts already cover it)
 - [ ] Real through-proxy reachability check for "Test Connection"
       (currently echoes the composed proxy string)
