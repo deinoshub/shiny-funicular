@@ -21,6 +21,7 @@ export 'src/models/profile.dart';
 export 'src/models/release_info.dart';
 export 'src/models/proxy_config.dart';
 export 'src/proxy/proxy_test_result.dart';
+export 'src/proxy/proxy_tester.dart';
 export 'src/models/stealth_config.dart';
 export 'src/platform/platform_info.dart';
 export 'src/stealth/stealth_args_builder.dart';
