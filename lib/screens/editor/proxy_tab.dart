@@ -151,6 +151,7 @@ class _ProxyTestPanel extends StatelessWidget {
       );
     }
 
+    if (result == null) return const SizedBox.shrink();
     final r = result!;
     final ok = r.status == ProxyTestStatus.success;
     final color = ok ? Colors.green.shade700 : theme.colorScheme.error;
