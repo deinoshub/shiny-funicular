@@ -1,9 +1,9 @@
 import 'package:cloak_core/cloak_core.dart';
 import 'package:cloakmanager/screens/editor/proxy_tab.dart';
 import 'package:cloakmanager/state/providers.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:macos_ui/macos_ui.dart';
 
 Profile _profile() => Profile(
       id: 'p1',
@@ -27,9 +27,16 @@ Profile _profile() => Profile(
 Future<void> _pump(WidgetTester tester, ProxyTester fake) async {
   await tester.pumpWidget(ProviderScope(
     overrides: [proxyTesterProvider.overrideWithValue(fake)],
-    child: MaterialApp(
-      home: Scaffold(
-        body: ProxyTab(draft: _profile(), onChanged: (_) {}),
+    child: MacosApp(
+      home: MacosWindow(
+        child: MacosScaffold(
+          children: [
+            ContentArea(
+              builder: (context, _) =>
+                  ProxyTab(draft: _profile(), onChanged: (_) {}),
+            ),
+          ],
+        ),
       ),
     ),
   ));

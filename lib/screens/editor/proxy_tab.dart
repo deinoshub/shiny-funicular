@@ -1,6 +1,7 @@
 import 'package:cloak_core/cloak_core.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:macos_ui/macos_ui.dart';
 
 import '../../state/providers.dart';
 import '../../widgets/draft_text_field.dart';
@@ -21,8 +22,8 @@ class _ProxyTabState extends ConsumerState<ProxyTab> {
 
   ProxyConfig get px => widget.draft.stealth.proxy;
 
-  void _set(ProxyConfig next) => widget.onChanged(
-      widget.draft.copyWith(stealth: widget.draft.stealth.copyWith(proxy: next)));
+  void _set(ProxyConfig next) => widget.onChanged(widget.draft
+      .copyWith(stealth: widget.draft.stealth.copyWith(proxy: next)));
 
   bool get _canTest =>
       px.enabled && px.host.isNotEmpty && px.port > 0 && !_testing;
@@ -43,26 +44,29 @@ class _ProxyTabState extends ConsumerState<ProxyTab> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       children: [
         LabeledField(
           label: 'Enabled',
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Switch(
+            child: MacosSwitch(
                 value: px.enabled,
                 onChanged: (v) => _set(px.copyWith(enabled: v))),
           ),
         ),
         LabeledField(
           label: 'Type',
-          child: DropdownButton<ProxyType>(
-            value: px.type,
-            items: [
-              for (final t in ProxyType.values)
-                DropdownMenuItem(value: t, child: Text(t.name)),
-            ],
-            onChanged: (v) => _set(px.copyWith(type: v)),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: MacosPopupButton<ProxyType>(
+              value: px.type,
+              onChanged: (v) => _set(px.copyWith(type: v)),
+              items: [
+                for (final t in ProxyType.values)
+                  MacosPopupMenuItem(value: t, child: Text(t.name)),
+              ],
+            ),
           ),
         ),
         LabeledField(
@@ -107,18 +111,19 @@ class _ProxyTabState extends ConsumerState<ProxyTab> {
           label: 'GeoIP (timezone/locale from exit IP)',
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Switch(
+            child: MacosSwitch(
                 value: px.geoipEnabled,
                 onChanged: (v) => _set(px.copyWith(geoipEnabled: v))),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Align(
           alignment: Alignment.centerLeft,
-          child: OutlinedButton.icon(
-            icon: const Icon(Icons.wifi_tethering),
-            label: const Text('Test Connection'),
+          child: PushButton(
+            controlSize: ControlSize.large,
+            secondary: true,
             onPressed: _canTest ? _test : null,
+            child: const Text('Test Connection'),
           ),
         ),
         if (_testing || _result != null) ...[
@@ -137,14 +142,11 @@ class _ProxyTestPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final typography = MacosTheme.of(context).typography;
     if (testing) {
       return Row(
         children: const [
-          SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2)),
+          SizedBox(width: 16, height: 16, child: ProgressCircle()),
           SizedBox(width: 12),
           Text('Testing…'),
         ],
@@ -154,11 +156,14 @@ class _ProxyTestPanel extends StatelessWidget {
     if (result == null) return const SizedBox.shrink();
     final r = result!;
     final ok = r.status == ProxyTestStatus.success;
-    final color = ok ? Colors.green.shade700 : theme.colorScheme.error;
+    final color =
+        ok ? MacosColors.systemGreenColor : MacosColors.systemRedColor;
 
     final lines = <String>[];
     if (ok) {
-      if (r.latency != null) lines.add('Latency: ${r.latency!.inMilliseconds} ms');
+      if (r.latency != null) {
+        lines.add('Latency: ${r.latency!.inMilliseconds} ms');
+      }
       if (r.exitIp != null) lines.add('Exit IP: ${r.exitIp}');
       final geo = [r.city, r.country]
           .where((s) => s != null && s.isNotEmpty)
@@ -181,10 +186,15 @@ class _ProxyTestPanel extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(ok ? Icons.check_circle : Icons.error, color: color, size: 18),
+              MacosIcon(
+                  ok
+                      ? CupertinoIcons.check_mark_circled_solid
+                      : CupertinoIcons.xmark_circle_fill,
+                  color: color,
+                  size: 18),
               const SizedBox(width: 8),
               Text(ok ? 'Proxy OK' : 'Proxy test failed',
-                  style: theme.textTheme.titleSmall?.copyWith(color: color)),
+                  style: typography.headline.copyWith(color: color)),
             ],
           ),
           const SizedBox(height: 8),

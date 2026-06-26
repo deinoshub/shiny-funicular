@@ -1,6 +1,5 @@
 import 'package:cloak_core/cloak_core.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
@@ -106,19 +105,16 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       ),
       children: [
         ContentArea(
-          builder: (context, scrollController) => Material(
-            type: MaterialType.transparency,
-            child: AnimatedBuilder(
-              animation: _tabController,
-              builder: (context, _) => IndexedStack(
-                index: _tabController.index,
-                children: [
-                  GeneralTab(draft: draft, onChanged: onChanged),
-                  StealthTab(draft: draft, onChanged: onChanged),
-                  ProxyTab(draft: draft, onChanged: onChanged),
-                  AdvancedTab(draft: draft, onChanged: onChanged),
-                ],
-              ),
+          builder: (context, scrollController) => AnimatedBuilder(
+            animation: _tabController,
+            builder: (context, _) => IndexedStack(
+              index: _tabController.index,
+              children: [
+                GeneralTab(draft: draft, onChanged: onChanged),
+                StealthTab(draft: draft, onChanged: onChanged),
+                ProxyTab(draft: draft, onChanged: onChanged),
+                AdvancedTab(draft: draft, onChanged: onChanged),
+              ],
             ),
           ),
         ),

@@ -1,5 +1,6 @@
 import 'package:cloak_core/cloak_core.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:macos_ui/macos_ui.dart';
 
 import '../../widgets/draft_text_field.dart';
 import '../../widgets/icon_catalog.dart';
@@ -12,8 +13,11 @@ class GeneralTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final iconValue = IconCatalog.names.contains(draft.iconName)
+        ? draft.iconName
+        : IconCatalog.names.first;
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       children: [
         LabeledField(
           label: 'Name',
@@ -32,28 +36,30 @@ class GeneralTab extends StatelessWidget {
         ),
         LabeledField(
           label: 'Icon',
-          child: DropdownButton<String>(
-            value: IconCatalog.names.contains(draft.iconName)
-                ? draft.iconName
-                : IconCatalog.names.first,
-            items: [
-              for (final n in IconCatalog.names)
-                DropdownMenuItem(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: MacosPopupButton<String>(
+              value: iconValue,
+              onChanged: (v) => onChanged(draft.copyWith(iconName: v)),
+              items: [
+                for (final n in IconCatalog.names)
+                  MacosPopupMenuItem(
                     value: n,
-                    child: Row(children: [
-                      Icon(IconCatalog.iconFor(n)),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      MacosIcon(IconCatalog.iconFor(n)),
                       const SizedBox(width: 8),
                       Text(n),
-                    ])),
-            ],
-            onChanged: (v) => onChanged(draft.copyWith(iconName: v)),
+                    ]),
+                  ),
+              ],
+            ),
           ),
         ),
         LabeledField(
           label: 'Persistent',
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Switch(
+            child: MacosSwitch(
               value: draft.persistent,
               onChanged: (v) => onChanged(draft.copyWith(persistent: v)),
             ),

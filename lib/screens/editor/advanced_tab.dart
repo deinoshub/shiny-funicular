@@ -1,5 +1,7 @@
 import 'package:cloak_core/cloak_core.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show SelectableText;
+import 'package:flutter/widgets.dart';
+import 'package:macos_ui/macos_ui.dart';
 
 import '../../widgets/draft_text_field.dart';
 
@@ -17,23 +19,27 @@ class AdvancedTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = MacosTheme.of(context);
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       children: [
         Text('Custom Chromium args (one per line)',
-            style: Theme.of(context).textTheme.titleSmall),
+            style: theme.typography.headline),
         const SizedBox(height: 6),
         DraftTextField(
           maxLines: 4,
           initialValue: draft.customArgs.join('\n'),
           onChanged: (v) => onChanged(draft.copyWith(
-            customArgs:
-                v.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+            customArgs: v
+                .split('\n')
+                .map((e) => e.trim())
+                .where((e) => e.isNotEmpty)
+                .toList(),
           )),
         ),
         const SizedBox(height: 16),
         Text('Environment variables (KEY=VALUE per line)',
-            style: Theme.of(context).textTheme.titleSmall),
+            style: theme.typography.headline),
         const SizedBox(height: 6),
         DraftTextField(
           maxLines: 3,
@@ -42,15 +48,21 @@ class AdvancedTab extends StatelessWidget {
           onChanged: (v) => onChanged(draft.copyWith(customEnv: _parseEnv(v))),
         ),
         const SizedBox(height: 16),
-        Text('Computed arguments',
-            style: Theme.of(context).textTheme.titleSmall),
+        Text('Computed arguments', style: theme.typography.headline),
         const SizedBox(height: 6),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(12),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: SelectableText(computedArgsPreview(draft),
-              style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+          decoration: BoxDecoration(
+            color: theme.canvasColor,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+                color: MacosColors.systemGrayColor.withValues(alpha: 0.3)),
+          ),
+          child: SelectableText(
+            computedArgsPreview(draft),
+            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+          ),
         ),
       ],
     );

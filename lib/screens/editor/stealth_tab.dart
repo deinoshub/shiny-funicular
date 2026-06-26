@@ -1,5 +1,6 @@
 import 'package:cloak_core/cloak_core.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:macos_ui/macos_ui.dart';
 
 import '../../widgets/draft_text_field.dart';
 import '../../widgets/labeled_field.dart';
@@ -15,7 +16,7 @@ class StealthTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       children: [
         _section(context, 'Identity'),
         LabeledField(
@@ -31,7 +32,7 @@ class StealthTab extends StatelessWidget {
           label: 'Fingerprint noise',
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Switch(
+            child: MacosSwitch(
               value: s.noiseEnabled,
               onChanged: (v) => _set(s.copyWith(noiseEnabled: v)),
             ),
@@ -40,24 +41,20 @@ class StealthTab extends StatelessWidget {
         _section(context, 'Platform'),
         LabeledField(
           label: 'Platform',
-          child: DropdownButton<SpoofPlatform>(
+          child: _popup<SpoofPlatform>(
             value: s.platform,
-            items: [
-              for (final pf in SpoofPlatform.values)
-                DropdownMenuItem(value: pf, child: Text(pf.name)),
-            ],
+            values: SpoofPlatform.values,
+            label: (e) => e.name,
             onChanged: (v) => _set(s.copyWith(platform: v)),
           ),
         ),
         _section(context, 'Brand'),
         LabeledField(
           label: 'Brand',
-          child: DropdownButton<BrowserBrand>(
+          child: _popup<BrowserBrand>(
             value: s.brand,
-            items: [
-              for (final b in BrowserBrand.values)
-                DropdownMenuItem(value: b, child: Text(b.name)),
-            ],
+            values: BrowserBrand.values,
+            label: (e) => e.name,
             onChanged: (v) => _set(s.copyWith(brand: v)),
           ),
         ),
@@ -94,12 +91,10 @@ class StealthTab extends StatelessWidget {
             (n) => _set(s.copyWith(storageQuotaMB: n))),
         LabeledField(
           label: 'WebRTC IP policy',
-          child: DropdownButton<WebRtcIpPolicy>(
+          child: _popup<WebRtcIpPolicy>(
             value: s.webrtcIpPolicy,
-            items: [
-              for (final w in WebRtcIpPolicy.values)
-                DropdownMenuItem(value: w, child: Text(w.name)),
-            ],
+            values: WebRtcIpPolicy.values,
+            label: (e) => e.name,
             onChanged: (v) => _set(s.copyWith(webrtcIpPolicy: v)),
           ),
         ),
@@ -111,8 +106,26 @@ class StealthTab extends StatelessWidget {
   }
 
   Widget _section(BuildContext c, String title) => Padding(
-        padding: const EdgeInsets.only(top: 16, bottom: 4),
-        child: Text(title, style: Theme.of(c).textTheme.titleMedium),
+        padding: const EdgeInsets.only(top: 18, bottom: 6),
+        child: Text(title, style: MacosTheme.of(c).typography.title3),
+      );
+
+  Widget _popup<T>({
+    required T value,
+    required List<T> values,
+    required String Function(T) label,
+    required ValueChanged<T?> onChanged,
+  }) =>
+      Align(
+        alignment: Alignment.centerLeft,
+        child: MacosPopupButton<T>(
+          value: value,
+          onChanged: onChanged,
+          items: [
+            for (final e in values)
+              MacosPopupMenuItem(value: e, child: Text(label(e))),
+          ],
+        ),
       );
 
   Widget _strField(BuildContext c, String label, String? value,
