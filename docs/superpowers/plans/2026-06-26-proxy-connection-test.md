@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - `packages/cloak_core` is **pure Dart** — never import `package:flutter/*` there. `dart:io` and `dart:convert` are allowed (already used by the launcher/CDP code).
-- New core dependency: `socks5_proxy: ^2.1.1` — import path is `package:socks_proxy/socks_client.dart`.
+- New core dependency: `socks5_proxy: ^2.1.1` — import path is `package:socks5_proxy/socks_client.dart`.
 - Echo endpoint is **hard-coded** to `https://ipwho.is/` (a `static const` on `ProxyTester`). Not configurable (YAGNI).
 - `ProxyTester.test` **never throws** — every failure mode is caught and returned as a `ProxyTestResult`.
 - The default transport always closes its `HttpClient` in a `finally` (`client.close(force: true)`).
@@ -491,7 +491,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:socks_proxy/socks_client.dart';
+import 'package:socks5_proxy/socks_client.dart';
 
 import '../models/enums.dart';
 import '../models/proxy_config.dart';
@@ -598,8 +598,10 @@ Expected: PASS — both transport tests report `unreachable`; Task 1 and Task 2 
 
 - [ ] **Step 8: Commit**
 
+Note: `pubspec.lock` is gitignored at the repo root — do NOT commit it.
+
 ```bash
-git add packages/cloak_core/pubspec.yaml packages/cloak_core/pubspec.lock \
+git add packages/cloak_core/pubspec.yaml \
         packages/cloak_core/lib/src/proxy/proxy_transport.dart \
         packages/cloak_core/lib/src/proxy/proxy_tester.dart \
         packages/cloak_core/lib/cloak_core.dart \
