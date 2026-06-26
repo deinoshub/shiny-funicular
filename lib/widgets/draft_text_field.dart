@@ -1,11 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:macos_ui/macos_ui.dart';
 
 /// A text field that owns a persistent [TextEditingController], created once
-/// from [initialValue]. Because the controller is not recreated on every
-/// parent rebuild, the caret no longer jumps to the end while typing.
-///
-/// To reset the field to a new value (e.g. switching profiles), give the
-/// surrounding widget a new key so this State is recreated.
+/// from [initialValue], so the caret does not jump while typing. Give the
+/// surrounding widget a new key to reset the field (e.g. switching profiles).
 class DraftTextField extends StatefulWidget {
   const DraftTextField({
     super.key,
@@ -40,12 +38,12 @@ class _DraftTextFieldState extends State<DraftTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return MacosTextField(
       controller: _controller,
       obscureText: widget.obscureText,
-      maxLines: widget.maxLines,
+      maxLines: widget.obscureText ? 1 : widget.maxLines,
       keyboardType: widget.keyboardType,
-      decoration: InputDecoration(hintText: widget.hintText),
+      placeholder: widget.hintText,
       onChanged: widget.onChanged,
     );
   }

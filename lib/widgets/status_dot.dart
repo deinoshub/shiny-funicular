@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:macos_ui/macos_ui.dart';
 
 class StatusDot extends StatelessWidget {
   const StatusDot({super.key, required this.running});
@@ -6,8 +7,8 @@ class StatusDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Icon(
-        Icons.circle,
+        CupertinoIcons.circle_fill,
         size: 10,
-        color: running ? Colors.green : Colors.grey,
+        color: running ? MacosColors.systemGreenColor : MacosColors.systemGrayColor,
       );
 }

@@ -1,20 +1,20 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
-/// Maps stored icon-name strings to Material [IconData].
+/// Maps stored icon-name strings to Cupertino (SF-style) [IconData].
 class IconCatalog {
   static const Map<String, IconData> _icons = {
-    'person': Icons.person,
-    'work': Icons.work,
-    'shopping': Icons.shopping_cart,
-    'shield': Icons.shield,
-    'globe': Icons.public,
-    'star': Icons.star,
-    'bolt': Icons.bolt,
-    'bug': Icons.bug_report,
-    'rocket': Icons.rocket_launch,
-    'flask': Icons.science,
+    'person': CupertinoIcons.person,
+    'work': CupertinoIcons.briefcase,
+    'shopping': CupertinoIcons.cart,
+    'shield': CupertinoIcons.shield,
+    'globe': CupertinoIcons.globe,
+    'star': CupertinoIcons.star,
+    'bolt': CupertinoIcons.bolt,
+    'bug': CupertinoIcons.ant,
+    'rocket': CupertinoIcons.rocket,
+    'flask': CupertinoIcons.lab_flask,
   };
 
-  static IconData iconFor(String name) => _icons[name] ?? Icons.person;
+  static IconData iconFor(String name) => _icons[name] ?? CupertinoIcons.person;
   static List<String> get names => _icons.keys.toList();
 }
