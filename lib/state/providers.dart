@@ -40,3 +40,5 @@ final browserLauncherProvider = Provider<BrowserLauncher>((ref) => BrowserLaunch
       paths: ref.watch(appPathsProvider),
       registry: ref.watch(processRegistryProvider),
     ));
+
+final proxyTesterProvider = Provider<ProxyTester>((ref) => ProxyTester());
