@@ -48,6 +48,27 @@ class CdpDiscovery {
         .toList();
   }
 
+  /// Fetches the targets at [httpBase] and returns a short label for the
+  /// active page: its title, or the URL host when the title is empty.
+  /// Returns null when no usable page target exists.
+  Future<String?> activePageLabel(String httpBase) async =>
+      pickActivePageLabel(await targets(httpBase));
+
+  /// Pure label picker over already-fetched [targets]. The `/json` list is in
+  /// most-recently-used order, so the first page target is the active one.
+  static String? pickActivePageLabel(List<CdpTarget> targets) {
+    for (final t in targets) {
+      if (t.type != 'page') continue;
+      final title = t.title.trim();
+      if (title.isNotEmpty) return title;
+      final host = Uri.tryParse(t.url)?.host ?? '';
+      if (host.isNotEmpty) return host;
+    }
+    return null;
+  }
+
+  void close() => _client.close();
+
   Future<bool> waitUntilReady(
     String httpBase, {
     Duration timeout = const Duration(seconds: 20),

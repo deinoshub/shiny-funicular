@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../state/profile_list.dart';
 import '../../state/selection.dart';
+import '../../state/tab_titles.dart';
 import '../../widgets/icon_catalog.dart';
 import '../../widgets/status_dot.dart';
 import '../settings/settings_screen.dart';
@@ -32,6 +33,8 @@ class _SidebarState extends ConsumerState<Sidebar> {
   Widget build(BuildContext context) {
     final profilesAsync = ref.watch(profileListProvider);
     final running = ref.watch(runningProfilesProvider).valueOrNull ?? <String>{};
+    final tabTitles =
+        ref.watch(tabTitlesProvider).valueOrNull ?? const <String, String>{};
     final selected = ref.watch(selectedProfileIdProvider);
 
     return SizedBox(
@@ -95,6 +98,14 @@ class _SidebarState extends ConsumerState<Sidebar> {
                           selected: p.id == selected,
                           leading: Icon(IconCatalog.iconFor(p.iconName)),
                           title: Text(p.name),
+                          subtitle: running.contains(p.id) &&
+                                  tabTitles[p.id] != null
+                              ? Text(
+                                  tabTitles[p.id]!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                )
+                              : null,
                           trailing: StatusDot(running: running.contains(p.id)),
                           onTap: () => ref
                               .read(selectedProfileIdProvider.notifier)

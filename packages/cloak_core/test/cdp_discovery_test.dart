@@ -44,6 +44,27 @@ void main() {
     expect(targets.single.type, 'page');
   });
 
+  test('activePageLabel returns the first page title', () async {
+    expect(await CdpDiscovery().activePageLabel(base()), 'Example');
+  });
+
+  test('pickActivePageLabel skips non-page and falls back to host', () {
+    final label = CdpDiscovery.pickActivePageLabel(const [
+      CdpTarget(targetId: 'b', type: 'background_page', title: 'BG', url: ''),
+      CdpTarget(targetId: 'p', type: 'page', title: '', url: 'https://news.example.com/x'),
+    ]);
+    expect(label, 'news.example.com');
+  });
+
+  test('pickActivePageLabel returns null without a usable page', () {
+    expect(
+      CdpDiscovery.pickActivePageLabel(const [
+        CdpTarget(targetId: 'w', type: 'worker', title: 'W', url: 'https://x'),
+      ]),
+      isNull,
+    );
+  });
+
   test('waitUntilReady returns true when reachable', () async {
     expect(
       await CdpDiscovery().waitUntilReady(base(),
